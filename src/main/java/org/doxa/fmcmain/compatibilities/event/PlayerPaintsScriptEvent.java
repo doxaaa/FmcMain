@@ -20,9 +20,7 @@ public class PlayerPaintsScriptEvent extends BukkitScriptEvent implements Listen
 
     // <--[event]
     // @Events
-    // UnearthMechanic player paints block
-    //
-    // @Regex ^on UnearthMechanic player paints block$
+    // player paints block
     //
     // @Triggers when a player modifies a block layer footprint using the UnearthMechanic paintbrush tool.
     //
@@ -31,11 +29,11 @@ public class PlayerPaintsScriptEvent extends BukkitScriptEvent implements Listen
     // @Context
     // <context.location> Returns the exact coordinate location of the block being painted as a LocationTag.
     //
-    // @Plugin FmcMain, unearthMechanic
+    // @Plugin Fmcmain, Unearthmechanic
     //
     // @Player Always.
     //
-    // @Group FmcMain
+    // @Group Fmcmain
     //
     // -->
 
@@ -44,7 +42,7 @@ public class PlayerPaintsScriptEvent extends BukkitScriptEvent implements Listen
 
     @Override
     public boolean couldMatch(ScriptPath path) {
-        return path.eventLower.startsWith("unearthmechanic player paints block");
+        return path.eventLower.startsWith("player paints block");
     }
 
     @Override
