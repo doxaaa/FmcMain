@@ -20,7 +20,7 @@ public class PlayerPaintsScriptEvent extends BukkitScriptEvent implements Listen
 
     // <--[event]
     // @Events
-    // player paints block
+    // player paints
     //
     // @Triggers when a player modifies a block layer footprint using the UnearthMechanic paintbrush tool.
     //
@@ -42,7 +42,7 @@ public class PlayerPaintsScriptEvent extends BukkitScriptEvent implements Listen
 
     @Override
     public boolean couldMatch(ScriptPath path) {
-        return path.eventLower.startsWith("player paints block");
+        return path.eventLower.startsWith("player paints");
     }
 
     @Override
