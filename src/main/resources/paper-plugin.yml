@@ -1,0 +1,22 @@
+name: FmcMain
+version: '1.0-SNAPSHOT'
+main: org.doxa.fmcmain.FmcMain
+api-version: '1.21.11'
+dependencies:
+  server:
+    CraftEngine:
+      load: BEFORE
+      required: true
+      join-classpath: true
+    Denizen:
+      load: BEFORE
+      required: true
+      join-classpath: true
+    UnearthMechanic:
+      load: BEFORE
+      required: true
+      join-classpath: true
+    Mechanics:
+      load: BEFORE
+      required: true
+      join-classpath: true
