@@ -1,4 +1,4 @@
-package org.doxa.fmcmain.compatibilities;
+package org.doxa.fmcmain;
 
 import org.doxa.fmcmain.compatibilities.condition.CondIsCraftEngineHasBeenLoad;
 import org.doxa.fmcmain.compatibilities.condition.CondIsCustomItem;

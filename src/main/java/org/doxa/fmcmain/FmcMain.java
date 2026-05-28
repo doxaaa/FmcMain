@@ -2,7 +2,6 @@ package org.doxa.fmcmain;
 
 import org.bukkit.plugin.java.JavaPlugin;
 import com.denizenscript.denizencore.events.ScriptEvent;
-import org.doxa.fmcmain.compatibilities.DenizenHook;
 import org.doxa.fmcmain.compatibilities.event.PlayerPaintsScriptEvent;
 import org.doxa.fmcmain.compatibilities.event.EvtCraftEngineReload;
 
