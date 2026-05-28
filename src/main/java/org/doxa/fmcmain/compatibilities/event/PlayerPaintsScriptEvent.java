@@ -21,20 +21,12 @@ public class PlayerPaintsScriptEvent extends BukkitScriptEvent implements Listen
     // <--[event]
     // @Events
     // player paints
-    //
-    // @Triggers when a player modifies a block layer footprint using the UnearthMechanic paintbrush tool.
-    //
-    // @Location true
-    //
-    // @Context
-    // <context.location> Returns the exact coordinate location of the block being painted as a LocationTag.
-    //
-    // @Plugin Fmcmain, Unearthmechanic
-    //
-    // @Player Always.
-    //
+    // @Plugin Fmcmain
     // @Group Fmcmain
-    //
+    // @Player Always
+    // @Location true
+    // @Context <context.location> Returns the exact coordinate location of the block being painted as a LocationTag.
+    // @Triggers when a player modifies a block layer footprint using the UnearthMechanic paintbrush tool.
     // -->
 
     public PlayerPaintsScriptEvent() {
