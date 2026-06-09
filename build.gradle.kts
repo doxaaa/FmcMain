@@ -14,11 +14,10 @@ repositories {
 
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
-    compileOnly("net.momirealms:craft-engine-core:0.0.67")
-    compileOnly("net.momirealms:craft-engine-bukkit:0.0.67")
+    compileOnly("net.momirealms:craft-engine-core:26.6")
+    compileOnly("net.momirealms:craft-engine-bukkit:26.6")
     compileOnly("com.denizenscript:denizen:1.3.2-SNAPSHOT")
     compileOnly("com.github.wuason6x9:UnearthMechanic:0.1.12")
-    compileOnly("dev.wuason:mechanics:1.0.4.2")
 }
 
 tasks {

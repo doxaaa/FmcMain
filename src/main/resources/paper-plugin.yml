@@ -16,7 +16,3 @@ dependencies:
       load: BEFORE
       required: true
       join-classpath: true
-    Mechanics:
-      load: BEFORE
-      required: true
-      join-classpath: true
