@@ -13,21 +13,15 @@ public final class FmcMain extends JavaPlugin {
     public void onEnable() {
         instance = this;
 
-        // --- PAINTER BRIDGE LOGIC ---
-        // Register the script instance directly into Denizen's listener architecture pipeline.
+        // Register Painter Bridge Event Tracks
         ScriptEvent.registerScriptEvent(new PlayerPaintsScriptEvent());
 
-        // --- CE BRIDGE LOGIC ---
-        // 1. Create the event instance
+        // Register CraftEngine Bridge Event Tracks
         EvtCraftEngineReload reloadEvent = new EvtCraftEngineReload();
-
-        // 2. Register it so Denizen scripts can use 'on craftengine reload'
         ScriptEvent.registerScriptEvent(reloadEvent);
-
-        // 3. Register it so the @EventHandler actually catches the CraftEngine event
         getServer().getPluginManager().registerEvents(reloadEvent, this);
 
-        // 4. Register all your tags (IDs, items, etc)
+        // Run Central Hook Registrations
         DenizenHook.register();
 
         getLogger().info("FmcMain successfully loaded combining PainterBridge & CEBridge!");
