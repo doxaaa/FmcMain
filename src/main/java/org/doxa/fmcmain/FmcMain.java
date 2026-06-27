@@ -4,6 +4,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 import com.denizenscript.denizencore.events.ScriptEvent;
 import org.doxa.fmcmain.compatibilities.event.PlayerPaintsScriptEvent;
 import org.doxa.fmcmain.compatibilities.event.EvtCraftEngineReload;
+import org.doxa.fmcmain.compatibilities.event.EvtCustomBlock;
+import org.doxa.fmcmain.compatibilities.event.EvtCustomFurniture;
+import org.doxa.fmcmain.compatibilities.event.EvtCustomInteract;
 
 public final class FmcMain extends JavaPlugin {
 
@@ -16,10 +19,21 @@ public final class FmcMain extends JavaPlugin {
         // Register Painter Bridge Event Tracks
         ScriptEvent.registerScriptEvent(new PlayerPaintsScriptEvent());
 
-        // Register CraftEngine Bridge Event Tracks
+        // Exact matching lines for Reload Event Tracks
         EvtCraftEngineReload reloadEvent = new EvtCraftEngineReload();
         ScriptEvent.registerScriptEvent(reloadEvent);
         getServer().getPluginManager().registerEvents(reloadEvent, this);
+
+        // --- SPECIFICATION: Registered inline in exactly 1 single line each ---
+
+        // Register CraftEngine Custom Block Place/Break Events
+        ScriptEvent.registerScriptEvent(new EvtCustomBlock());
+
+        // Register CraftEngine Custom Furniture Place/Break Events
+        ScriptEvent.registerScriptEvent(new EvtCustomFurniture());
+
+        // Register CraftEngine Custom Interacts / Clicking Events
+        ScriptEvent.registerScriptEvent(new EvtCustomInteract());
 
         // Run Central Hook Registrations
         DenizenHook.register();
