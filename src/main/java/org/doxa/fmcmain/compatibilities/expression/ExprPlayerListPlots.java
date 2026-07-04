@@ -17,7 +17,7 @@ public class ExprPlayerListPlots {
 
         // <--[tag]
         // @attribute <PlayerTag.list_plot_homes>
-        // @returns ElementTag
+        // @returns ListTag
         // @description
         // Returns a list of players plot homes
         // -->
