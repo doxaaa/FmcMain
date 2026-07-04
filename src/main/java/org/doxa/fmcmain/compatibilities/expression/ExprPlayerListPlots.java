@@ -14,6 +14,14 @@ import java.util.Set;
 public class ExprPlayerListPlots {
 
     public static void register() {
+
+        // <--[tag]
+        // @attribute <PlayerTag.list_plot_homes>
+        // @returns ElementTag
+        // @description
+        // Returns a list of players plot homes
+        // -->
+
         // Registers the extension tag directly to Denizen's native PlayerTag processing matrix
         PlayerTag.tagProcessor.registerTag(ListTag.class, "list_plot_homes", (attribute, player) -> {
 
