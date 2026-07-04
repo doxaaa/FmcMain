@@ -14,15 +14,12 @@ import java.util.Set;
 public class ExprPlayerListPlots {
 
     public static void register() {
-
         // <--[tag]
         // @attribute <PlayerTag.list_plot_homes>
         // @returns ListTag
         // @description
         // Returns a list of players plot homes
         // -->
-
-
         PlayerTag.tagProcessor.registerTag(ListTag.class, "list_plot_homes", (attribute, player) -> {
 
             if (player.getOfflinePlayer() == null) {
