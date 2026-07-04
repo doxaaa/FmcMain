@@ -18,6 +18,8 @@ dependencies {
     compileOnly("net.momirealms:craft-engine-bukkit:26.6")
     compileOnly("com.denizenscript:denizen:1.3.2-SNAPSHOT")
     compileOnly("com.github.wuason6x9:UnearthMechanic:0.1.12")
+    implementation(platform("com.intellectualsites.bom:bom-newest:1.56"))
+    compileOnly("com.intellectualsites.plotsquared:plotsquared-core")
 }
 
 tasks {

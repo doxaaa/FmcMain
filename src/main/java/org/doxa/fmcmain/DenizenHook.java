@@ -6,6 +6,7 @@ import org.doxa.fmcmain.compatibilities.condition.CondIsCraftEngineHasBeenLoad;
 import org.doxa.fmcmain.compatibilities.condition.CondIsCustomItem;
 import org.doxa.fmcmain.compatibilities.expression.ExprCustomItem;
 import org.doxa.fmcmain.compatibilities.expression.ExprItemCustomItemID;
+import org.doxa.fmcmain.compatibilities.expression.ExprPlayerListPlots;
 
 public class DenizenHook {
 
@@ -16,6 +17,7 @@ public class DenizenHook {
         // Register Global Tag Context Parsers
         ExprCustomItem.register();
         CondIsCraftEngineHasBeenLoad.register();
+        ExprPlayerListPlots.register(); // Registered in exactly 1 single line
 
         // Register Object Configuration Properties
         CondIsCustomItem.register();

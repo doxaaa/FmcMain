@@ -16,3 +16,7 @@ dependencies:
       load: BEFORE
       required: true
       join-classpath: true
+    PlotSquared:
+      load: BEFORE
+      required: true
+      join-classpath: true
