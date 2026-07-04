@@ -9,7 +9,7 @@ public class CondIsCustomItem {
     public static void register() {
         // <--[tag]
         // @attribute <ItemTag.is_ce_item>
-        // @returns ElementTag
+        // @returns ElementTag(Boolean)
         // @description
         // Returns if the item is a Craft Engine item.
         // -->
