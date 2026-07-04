@@ -18,7 +18,7 @@ public class ExprPlayerListPlots {
         // @attribute <PlayerTag.list_plot_homes>
         // @returns ListTag
         // @description
-        // Returns a list of players plot homes
+        // Returns a list of players plot homes.
         // -->
         PlayerTag.tagProcessor.registerTag(ListTag.class, "list_plot_homes", (attribute, player) -> {
 
