@@ -22,7 +22,7 @@ public class ExprPlayerListPlots {
         // Returns a list of players plot homes
         // -->
 
-        // Registers the extension tag directly to Denizen's native PlayerTag processing matrix
+
         PlayerTag.tagProcessor.registerTag(ListTag.class, "list_plot_homes", (attribute, player) -> {
 
             if (player.getOfflinePlayer() == null) {
