@@ -6,7 +6,8 @@ import org.doxa.fmcmain.compatibilities.event.PlayerPaintsScriptEvent;
 import org.doxa.fmcmain.compatibilities.event.EvtCraftEngineReload;
 import org.doxa.fmcmain.compatibilities.event.EvtCustomBlock;
 import org.doxa.fmcmain.compatibilities.event.EvtCustomFurniture;
-import org.doxa.fmcmain.compatibilities.event.EvtCustomInteract;
+import org.doxa.fmcmain.compatibilities.event.EvtCustomBlockInteract;
+import org.doxa.fmcmain.compatibilities.event.EvtCustomFurnitureInteract;
 
 public final class FmcMain extends JavaPlugin {
 
@@ -32,8 +33,8 @@ public final class FmcMain extends JavaPlugin {
         // Register CraftEngine Custom Furniture Place/Break Events
         ScriptEvent.registerScriptEvent(new EvtCustomFurniture());
 
-        // Register CraftEngine Custom Interacts / Clicking Events
-        ScriptEvent.registerScriptEvent(new EvtCustomInteract());
+        ScriptEvent.registerScriptEvent(new EvtCustomBlockInteract());
+        ScriptEvent.registerScriptEvent(new EvtCustomFurnitureInteract());
 
         // Run Central Hook Registrations
         DenizenHook.register();

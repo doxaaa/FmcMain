@@ -8,6 +8,7 @@ import com.denizenscript.denizen.utilities.implementation.BukkitScriptEntryData;
 import com.denizenscript.denizencore.objects.ObjectTag;
 import com.denizenscript.denizencore.objects.core.ElementTag;
 import com.denizenscript.denizencore.scripts.ScriptEntryData;
+import net.momirealms.craftengine.bukkit.api.CraftEngineBlocks;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
@@ -17,44 +18,53 @@ import org.bukkit.plugin.EventExecutor;
 import java.lang.reflect.Method;
 import java.util.List;
 
-public class EvtCustomBlock extends BukkitScriptEvent implements Listener {
+public class EvtCustomBlockInteract extends BukkitScriptEvent implements Listener {
 
-    public static EvtCustomBlock instance;
+    public static EvtCustomBlockInteract instance;
     public org.bukkit.event.Event currentEvent;
-    private boolean isMutingVanillaMatch = false;
+    public ElementTag click_type;
 
-    public EvtCustomBlock() {
+    public EvtCustomBlockInteract() {
         instance = this;
-        registerCouldMatcher("ce_block player places block");
-        registerCouldMatcher("ce_block player breaks block");
+        registerCouldMatcher("ce_block player left clicks block");
+        registerCouldMatcher("ce_block player right clicks block");
+        registerCouldMatcher("ce_block player clicks block");
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public void init() {
-        String[] targetClassNames = {
-                "net.momirealms.craftengine.bukkit.api.event.CustomBlockPlaceEvent",
-                "net.momirealms.craftengine.bukkit.api.event.CustomBlockBreakEvent"
-        };
-
+        String targetClassName = "net.momirealms.craftengine.bukkit.api.event.CustomBlockInteractEvent";
         EventExecutor executor = (listener, event) -> {
+            try {
+                Method handMethod = event.getClass().getMethod("hand");
+                handMethod.setAccessible(true);
+                Object handEnum = handMethod.invoke(event);
+                if (handEnum != null && handEnum.toString().contains("OFF_HAND")) {
+                    return;
+                }
+            } catch (Exception ignored) {}
+
             currentEvent = event;
-            isMutingVanillaMatch = false;
+            try {
+                Method actionMethod = event.getClass().getMethod("action");
+                actionMethod.setAccessible(true);
+                Object actionValue = actionMethod.invoke(event);
+                click_type = new ElementTag(actionValue != null ? actionValue.toString() : "RIGHT_CLICK_BLOCK");
+            } catch (Exception e) {
+                click_type = new ElementTag("RIGHT_CLICK_BLOCK");
+            }
             fire();
         };
 
-        for (String className : targetClassNames) {
-            try {
-                Class<?> clazz = Class.forName(className);
-                if (org.bukkit.event.Event.class.isAssignableFrom(clazz)) {
-                    org.bukkit.Bukkit.getServer().getPluginManager().registerEvent(
-                            (Class<? extends org.bukkit.event.Event>) clazz, this, EventPriority.NORMAL, executor, org.doxa.fmcmain.FmcMain.instance
-                    );
-                }
-            } catch (Exception ignored) {}
-        }
-
-        org.bukkit.Bukkit.getServer().getPluginManager().registerEvents(this, org.doxa.fmcmain.FmcMain.instance);
+        try {
+            Class<?> clazz = Class.forName(targetClassName);
+            if (org.bukkit.event.Event.class.isAssignableFrom(clazz)) {
+                org.bukkit.Bukkit.getServer().getPluginManager().registerEvent(
+                        (Class<? extends org.bukkit.event.Event>) clazz, this, EventPriority.NORMAL, executor, org.doxa.fmcmain.FmcMain.instance
+                );
+            }
+        } catch (Exception ignored) {}
     }
 
     @Override
@@ -78,25 +88,41 @@ public class EvtCustomBlock extends BukkitScriptEvent implements Listener {
 
     @Override
     public boolean couldMatch(ScriptPath path) {
-        if (path.eventLower.contains("clicks")) {
-            return false;
-        }
-        return (path.eventLower.contains("places") || path.eventLower.contains("breaks")) && path.eventLower.contains("ce_block");
+        return path.eventLower.contains("clicks") && path.eventLower.contains("ce_block") && !path.eventLower.contains("furniture");
     }
 
     @Override
     public boolean matches(ScriptPath path) {
-        if (currentEvent == null || isMutingVanillaMatch) {
+        if (currentEvent == null) {
             return false;
         }
 
-        String action = path.eventArgLowerAt(2);
-        String eventClassName = currentEvent.getClass().getSimpleName().toLowerCase();
+        Location targetLoc = getTargetLocation();
+        if (targetLoc == null || !CraftEngineBlocks.isCustomBlock(targetLoc.getBlock())) {
+            return false;
+        }
 
-        if (eventClassName.contains("place") && !action.equals("places")) return false;
-        if (eventClassName.contains("break") && !action.equals("breaks")) return false;
+        int clicksIndex = -1;
+        for (int i = 0; i < path.eventArgsLower.length; i++) {
+            if (path.eventArgsLower[i].equals("clicks")) {
+                clicksIndex = i;
+                break;
+            }
+        }
 
-        String targetArg = path.eventArgLowerAt(3);
+        if (clicksIndex == -1) {
+            return false;
+        }
+
+        if (clicksIndex == 3) {
+            String clickDirectionArg = path.eventArgLowerAt(2);
+            String detectedActionType = getClickActionType();
+            if (!clickDirectionArg.equalsIgnoreCase(detectedActionType)) {
+                return false;
+            }
+        }
+
+        String targetArg = path.eventArgLowerAt(clicksIndex + 1);
         String customBlockId = getBlockIdStr().toLowerCase();
         String underscoredBlockId = customBlockId.replace(":", "_");
 
@@ -107,12 +133,14 @@ public class EvtCustomBlock extends BukkitScriptEvent implements Listener {
             return false;
         }
 
-        return runInCheck(path, getTargetLocation());
+        return runInCheck(path, targetLoc);
     }
 
     @Override
     public ObjectTag getContext(String name) {
         switch (name) {
+            case "click_type":
+                return click_type;
             case "location":
                 Location loc = getTargetLocation();
                 if (loc != null) return new LocationTag(loc);
@@ -185,30 +213,37 @@ public class EvtCustomBlock extends BukkitScriptEvent implements Listener {
                     }
                 }
             } catch (Exception ignored2) {}
-            try {
-                Location loc = getTargetLocation();
-                if (loc != null) {
-                    return net.momirealms.craftengine.bukkit.api.CraftEngineBlocks.getCustomBlockState(loc.getBlock());
-                }
-            } catch (Exception ignored3) {}
         }
         return null;
+    }
+
+    private String getClickActionType() {
+        if (currentEvent == null) return "right";
+        try {
+            Method actionMethod = currentEvent.getClass().getMethod("action");
+            actionMethod.setAccessible(true);
+            Object actionValue = actionMethod.invoke(currentEvent);
+            if (actionValue != null && actionValue.toString().toUpperCase().contains("LEFT")) {
+                return "left";
+            }
+        } catch (Exception ignored) {}
+        return "right";
     }
 
     private Location getTargetLocation() {
         if (currentEvent == null) return null;
         try {
-            Method m = currentEvent.getClass().getMethod("location");
-            m.setAccessible(true);
-            return (Location) m.invoke(currentEvent);
+            Object stateObj = getAssetObject();
+            if (stateObj != null) {
+                Method locMethod = stateObj.getClass().getMethod("location");
+                locMethod.setAccessible(true);
+                return (Location) locMethod.invoke(stateObj);
+            }
         } catch (Exception ignored) {
             try {
-                for (Method m : currentEvent.getClass().getMethods()) {
-                    if (m.getParameterCount() == 0 && m.getReturnType() == Location.class) {
-                        m.setAccessible(true);
-                        return (Location) m.invoke(currentEvent);
-                    }
-                }
+                Method fallbackLoc = currentEvent.getClass().getMethod("location");
+                fallbackLoc.setAccessible(true);
+                return (Location) fallbackLoc.invoke(currentEvent);
             } catch (Exception ignored2) {}
         }
         return null;
@@ -217,38 +252,10 @@ public class EvtCustomBlock extends BukkitScriptEvent implements Listener {
     private Player getBukkitPlayerInstance() {
         if (currentEvent == null) return null;
         try {
-            Method m = currentEvent.getClass().getMethod("player");
-            m.setAccessible(true);
-            return (Player) m.invoke(currentEvent);
-        } catch (Exception ignored) {
-            try {
-                for (Method m : currentEvent.getClass().getMethods()) {
-                    if (m.getParameterCount() == 0 && m.getReturnType() == Player.class) {
-                        m.setAccessible(true);
-                        return (Player) m.invoke(currentEvent);
-                    }
-                }
-            } catch (Exception ignored2) {}
-            try {
-                Method getPlayerMethod = currentEvent.getClass().getMethod("getPlayer");
-                getPlayerMethod.setAccessible(true);
-                return (Player) getPlayerMethod.invoke(currentEvent);
-            } catch (Exception ignored3) {}
-        }
+            Method playerMethod = currentEvent.getClass().getMethod("player");
+            playerMethod.setAccessible(true);
+            return (Player) playerMethod.invoke(currentEvent);
+        } catch (Exception ignored) {}
         return null;
     }
-
-    @org.bukkit.event.EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-    public void onVanillaPlaceMute(org.bukkit.event.block.BlockPlaceEvent event) {
-        try {
-            if (net.momirealms.craftengine.bukkit.api.CraftEngineBlocks.isCustomBlock(event.getBlock())) {
-                currentEvent = event;
-                isMutingVanillaMatch = true;
-            }
-        } catch (Exception ignored) {}
-    }
-
-    @org.bukkit.event.EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-    public void onVanillaBreakMute(org.bukkit.event.block.BlockBreakEvent event) {
-        try {
-            if (net.momirealms.craftengine.bukkit.api.CraftEngineBlocks.isCustomBlock(event.getBlock())) {currentEvent = event;isMutingVanillaMatch = true;}} catch (Exception ignored) {}}}
+}

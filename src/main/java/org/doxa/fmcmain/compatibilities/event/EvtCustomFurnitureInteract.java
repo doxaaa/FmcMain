@@ -17,31 +17,51 @@ import org.bukkit.plugin.EventExecutor;
 import java.lang.reflect.Method;
 import java.util.List;
 
-public class EvtCustomFurniture extends BukkitScriptEvent implements Listener {
+public class EvtCustomFurnitureInteract extends BukkitScriptEvent implements Listener {
 
-    public static EvtCustomFurniture instance;
+    public static EvtCustomFurnitureInteract instance;
     public org.bukkit.event.Event currentEvent;
+    public ElementTag click_type;
 
-    public EvtCustomFurniture() {
+    public EvtCustomFurnitureInteract() {
         instance = this;
-        registerCouldMatcher("ce_furniture player places furniture");
-        registerCouldMatcher("ce_furniture player breaks furniture");
+        // REQUIRED SYNTAX: Updated precisely to use your custom prefix layout string
+        registerCouldMatcher("ce_furniture player <'left'/'right'> clicks furniture");
+        registerCouldMatcher("ce_furniture player clicks furniture");
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public void init() {
         String[] targetClassNames = {
-                "net.momirealms.craftengine.bukkit.api.event.FurniturePlaceEvent",
-                "net.momirealms.craftengine.bukkit.api.event.FurnitureBreakEvent"
+                "net.momirealms.craftengine.bukkit.api.event.FurnitureInteractEvent",
+                "net.momirealms.craftengine.bukkit.api.event.FurnitureAttackEvent"
         };
 
         EventExecutor executor = (listener, event) -> {
-            String name = event.getClass().getSimpleName().toLowerCase();
-            if (name.contains("furniture") && (name.contains("place") || name.contains("break"))) {
-                currentEvent = event;
-                fire();
+            try {
+                Method handMethod = event.getClass().getMethod("hand");
+                handMethod.setAccessible(true);
+                Object handEnum = handMethod.invoke(event);
+                if (handEnum != null && handEnum.toString().contains("OFF_HAND")) {
+                    return;
+                }
+            } catch (Exception ignored) {}
+
+            currentEvent = event;
+            try {
+                if (event.getClass().getSimpleName().equals("FurnitureAttackEvent")) {
+                    click_type = new ElementTag("LEFT_CLICK_BLOCK");
+                } else {
+                    Method actionMethod = event.getClass().getMethod("action");
+                    actionMethod.setAccessible(true);
+                    Object actionValue = actionMethod.invoke(event);
+                    click_type = new ElementTag(actionValue != null ? actionValue.toString() : "RIGHT_CLICK_BLOCK");
+                }
+            } catch (Exception e) {
+                click_type = new ElementTag("RIGHT_CLICK_BLOCK");
             }
+            fire();
         };
 
         for (String className : targetClassNames) {
@@ -77,10 +97,7 @@ public class EvtCustomFurniture extends BukkitScriptEvent implements Listener {
 
     @Override
     public boolean couldMatch(ScriptPath path) {
-        if (path.eventLower.contains("clicks")) {
-            return false;
-        }
-        return (path.eventLower.contains("places") || path.eventLower.contains("breaks")) && path.eventLower.contains("ce_furniture");
+        return path.eventLower.contains("clicks") && path.eventLower.contains("ce_furniture");
     }
 
     @Override
@@ -89,13 +106,27 @@ public class EvtCustomFurniture extends BukkitScriptEvent implements Listener {
             return false;
         }
 
-        String action = path.eventArgLowerAt(2);
-        String eventName = currentEvent.getClass().getSimpleName().toLowerCase();
+        int clicksIndex = -1;
+        for (int i = 0; i < path.eventArgsLower.length; i++) {
+            if (path.eventArgsLower[i].equals("clicks")) {
+                clicksIndex = i;
+                break;
+            }
+        }
 
-        if (eventName.contains("place") && !action.equals("places")) return false;
-        if (eventName.contains("break") && !action.equals("breaks")) return false;
+        if (clicksIndex == -1) {
+            return false;
+        }
 
-        String targetArg = path.eventArgLowerAt(3);
+        if (clicksIndex == 3) {
+            String clickDirectionArg = path.eventArgLowerAt(2);
+            String detectedActionType = getClickActionType();
+            if (!clickDirectionArg.equalsIgnoreCase(detectedActionType)) {
+                return false;
+            }
+        }
+
+        String targetArg = path.eventArgLowerAt(clicksIndex + 1);
         String customFurnitureId = getFurnitureIdStr().toLowerCase();
         String underscoredFurnitureId = customFurnitureId.replace(":", "_");
 
@@ -112,10 +143,13 @@ public class EvtCustomFurniture extends BukkitScriptEvent implements Listener {
     @Override
     public ObjectTag getContext(String name) {
         switch (name) {
+            case "click_type":
+                return click_type;
             case "location":
                 Location loc = getTargetLocation();
                 if (loc != null) return new LocationTag(loc);
                 break;
+            case "id":
             case "furniture":
                 String idStr = getFurnitureIdStr();
                 if (!idStr.isEmpty()) {
@@ -123,8 +157,8 @@ public class EvtCustomFurniture extends BukkitScriptEvent implements Listener {
                 }
                 break;
             case "item_in_hand":
-                Player playerEntity = getBukkitPlayerInstance();
-                if (playerEntity != null) return new ItemTag(playerEntity.getInventory().getItemInMainHand());
+                Player p = getBukkitPlayerInstance();
+                if (p != null) return new ItemTag(p.getInventory().getItemInMainHand());
                 break;
         }
         return super.getContext(name);
@@ -132,7 +166,7 @@ public class EvtCustomFurniture extends BukkitScriptEvent implements Listener {
 
     private String getFurnitureIdStr() {
         try {
-            Object assetObj = getFurnitureObject();
+            Object assetObj = getAssetObject();
             if (assetObj != null) {
                 Method idMethod = assetObj.getClass().getMethod("id");
                 idMethod.setAccessible(true);
@@ -142,13 +176,13 @@ public class EvtCustomFurniture extends BukkitScriptEvent implements Listener {
         return "";
     }
 
-    private Object getFurnitureObject() {
+    private Object getAssetObject() {
         if (currentEvent == null) return null;
         try {
-            Method m = currentEvent.getClass().getMethod("furniture");
-            m.setAccessible(true);
-            return m.invoke(currentEvent);
-        } catch (Exception e) {
+            Method furnitureMethod = currentEvent.getClass().getMethod("furniture");
+            furnitureMethod.setAccessible(true);
+            return furnitureMethod.invoke(currentEvent);
+        } catch (Exception ignored) {
             try {
                 for (Method m : currentEvent.getClass().getMethods()) {
                     if (m.getParameterCount() == 0 && m.getName().toLowerCase().contains("furniture")) {
@@ -156,25 +190,39 @@ public class EvtCustomFurniture extends BukkitScriptEvent implements Listener {
                         return m.invoke(currentEvent);
                     }
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception ignored2) {}
         }
         return null;
+    }
+
+    private String getClickActionType() {
+        if (currentEvent == null) return "right";
+        if (currentEvent.getClass().getSimpleName().equals("FurnitureAttackEvent")) return "left";
+        try {
+            Method actionMethod = currentEvent.getClass().getMethod("action");
+            actionMethod.setAccessible(true);
+            Object actionValue = actionMethod.invoke(currentEvent);
+            if (actionValue != null && actionValue.toString().toUpperCase().contains("LEFT")) {
+                return "left";
+            }
+        } catch (Exception ignored) {}
+        return "right";
     }
 
     private Location getTargetLocation() {
         if (currentEvent == null) return null;
         try {
-            Method m = currentEvent.getClass().getMethod("location");
-            m.setAccessible(true);
-            return (Location) m.invoke(currentEvent);
+            Object stateObj = getAssetObject();
+            if (stateObj != null) {
+                Method locMethod = stateObj.getClass().getMethod("location");
+                locMethod.setAccessible(true);
+                return (Location) locMethod.invoke(stateObj);
+            }
         } catch (Exception ignored) {
             try {
-                for (Method m : currentEvent.getClass().getMethods()) {
-                    if (m.getParameterCount() == 0 && m.getReturnType() == Location.class) {
-                        m.setAccessible(true);
-                        return (Location) m.invoke(currentEvent);
-                    }
-                }
+                Method fallbackLoc = currentEvent.getClass().getMethod("location");
+                fallbackLoc.setAccessible(true);
+                return (Location) fallbackLoc.invoke(currentEvent);
             } catch (Exception ignored2) {}
         }
         return null;
@@ -183,19 +231,10 @@ public class EvtCustomFurniture extends BukkitScriptEvent implements Listener {
     private Player getBukkitPlayerInstance() {
         if (currentEvent == null) return null;
         try {
-            Method m = currentEvent.getClass().getMethod("player");
-            m.setAccessible(true);
-            return (Player) m.invoke(currentEvent);
-        } catch (Exception ignored) {
-            try {
-                for (Method m : currentEvent.getClass().getMethods()) {
-                    if (m.getParameterCount() == 0 && m.getReturnType() == Player.class) {
-                        m.setAccessible(true);
-                        return (Player) m.invoke(currentEvent);
-                    }
-                }
-            } catch (Exception ignored2) {}
-        }
+            Method playerMethod = currentEvent.getClass().getMethod("player");
+            playerMethod.setAccessible(true);
+            return (Player) playerMethod.invoke(currentEvent);
+        } catch (Exception ignored) {}
         return null;
     }
 }
