@@ -12,6 +12,10 @@ dependencies:
       load: BEFORE
       required: true
       join-classpath: true
+    Depenizen:
+      load: BEFORE
+      required: true
+      join-classpath: true
     UnearthMechanic:
       load: BEFORE
       required: true

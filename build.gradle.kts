@@ -20,6 +20,7 @@ dependencies {
     compileOnly("com.github.wuason6x9:UnearthMechanic:0.1.12")
     implementation(platform("com.intellectualsites.bom:bom-newest:1.56"))
     compileOnly("com.intellectualsites.plotsquared:plotsquared-core")
+    compileOnly("com.denizenscript:depenizen:2.0.0")
 }
 
 tasks {

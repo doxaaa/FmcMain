@@ -8,6 +8,8 @@ import org.doxa.fmcmain.compatibilities.event.EvtCustomBlock;
 import org.doxa.fmcmain.compatibilities.event.EvtCustomFurniture;
 import org.doxa.fmcmain.compatibilities.event.EvtCustomBlockInteract;
 import org.doxa.fmcmain.compatibilities.event.EvtCustomFurnitureInteract;
+import org.doxa.fmcmain.compatibilities.event.EvtPlayerEntersPlot;
+import org.doxa.fmcmain.compatibilities.event.EvtPlayerLeavesPlot;
 
 public final class FmcMain extends JavaPlugin {
 
@@ -35,6 +37,9 @@ public final class FmcMain extends JavaPlugin {
 
         ScriptEvent.registerScriptEvent(new EvtCustomBlockInteract());
         ScriptEvent.registerScriptEvent(new EvtCustomFurnitureInteract());
+
+        ScriptEvent.registerScriptEvent(new EvtPlayerEntersPlot());
+        ScriptEvent.registerScriptEvent(new EvtPlayerLeavesPlot());
 
         // Run Central Hook Registrations
         DenizenHook.register();
