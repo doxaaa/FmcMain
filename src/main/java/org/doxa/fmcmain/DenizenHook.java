@@ -7,6 +7,7 @@ import org.doxa.fmcmain.compatibilities.condition.CondIsCustomItem;
 import org.doxa.fmcmain.compatibilities.expression.ExprCustomItem;
 import org.doxa.fmcmain.compatibilities.expression.ExprItemCustomItemID;
 import org.doxa.fmcmain.compatibilities.expression.ExprPlayerListPlots;
+import org.doxa.fmcmain.compatibilities.expression.ExprBlockData; // Updated class import name reference
 
 public class DenizenHook {
 
@@ -22,5 +23,6 @@ public class DenizenHook {
         // Register Object Configuration Properties
         CondIsCustomItem.register();
         ExprItemCustomItemID.register();
+        ExprBlockData.register(); // Updated registered hook reference matching your clean name requirement
     }
 }
